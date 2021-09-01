@@ -1,0 +1,28 @@
+stages:
+  - publish
+  - deliver
+
+mirror:
+  stage: publish
+  script:
+    - setsid ./ci/mirror.sh
+  only:
+    - /^(main.*)$/
+  tags:
+    - github-changelog
+
+build_and_deliver:
+  stage: deliver
+  script:
+    - setsid ./ci/docker-deliver.sh "x86" "github-dynamic-changelog" "0.1"
+  only:
+    refs:
+      - /^(master.*)$/
+    changes:
+      - .gitlab-ci.yml
+      - api.py
+      - requirements.txt
+      - ci/docker-deliver.sh
+      - Dockerfile
+  tags:
+    - github-changelog
