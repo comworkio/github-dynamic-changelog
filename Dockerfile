@@ -6,10 +6,12 @@ ENV FLASK_APP=/api.py \
     WERKZEUG_RUN_MAIN=true \
     MANIFEST_FILE_PATH=/manifest.json
 
-COPY ./api.py ./manifest.json ./requirements.txt /
+COPY ./api/api.py ./manifest.json ./api/requirements.txt /api/list_commits.sh /
 
 RUN pip3 install --upgrade pip && \
-    pip3 install -r /requirements.txt
+    pip3 install -r /requirements.txt && \
+    apk add --no-cache bash jq && \
+    chmod +x /list_commits.sh
 
 EXPOSE 8080
 
