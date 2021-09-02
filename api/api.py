@@ -20,6 +20,8 @@ api = Api(app)
 github_api_version = "v3"
 github_api_url = "https://api.github.com"
 commits_api_url_tpl = github_api_url + "/repos/{}/{}/commits?since={}&sha={}"
+search_api_url_tpl = github_api_url + "/search/issues?q=type:pr+repo:{}%2F{}+head:{}+{}"
+issue_from_pr_api_url = github_api_url + "repos/{}/{}/pulls/{}"
 
 github_common_header = {
     "Authorization": "Bearer {}".format(os.environ['GITHUB_ACCESS_TOKEN']),
@@ -118,14 +120,31 @@ class ChangelogApi(Resource):
             return c, 400
 
         commits_api_url = commits_api_url_tpl.format(body['org'], body['repo'], body['since'], body['ref'])
-        log_msg("debug", "invoking {}".format(commits_api_url))
+        log_msg("debug", "invoking commits_api_url = {}".format(commits_api_url))
         commits_req = requests.get(commits_api_url, headers=github_common_header)
 
         c = check_response_code(commits_req.status_code, "commits")
         if is_not_ok(c):
             return c, 500
 
-        return commits_req.json()
+        results = {
+            "status": "ok",
+            "issues": []
+        }
+
+        commits = commits_req.json()
+        for commit in commits:
+            search_api_url = search_api_url_tpl.format(body['org'], body['repo'], body['ref'], commit['sha'])
+            log_msg("debug", "invoking search_api_url = {}".format(commits_api_url))
+            search_req = requests.get(search_api_url, headers=github_common_header)
+            c = check_response_code(search_req.status_code, "search")
+            if is_not_ok(c):
+                return c, 500
+
+            return search_req.json()
+
+        return results
+
         
 class RootEndPoint(Resource):
     def get(self):
