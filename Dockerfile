@@ -1,10 +1,13 @@
 FROM python:3-alpine
 
-ENV FLASK_APP=/api.py \
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=UTF-8 \
+    FLASK_APP=/api.py \
     FLASK_RUN_HOST=0.0.0.0 \
     FLASK_RUN_PORT=8080 \
     WERKZEUG_RUN_MAIN=true \
-    MANIFEST_FILE_PATH=/manifest.json
+    MANIFEST_FILE_PATH=/manifest.json \
+    LOG_LEVEL=info
 
 COPY ./api/api.py ./manifest.json ./api/requirements.txt /
 

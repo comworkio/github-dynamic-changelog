@@ -19,7 +19,7 @@ api = Api(app)
 
 github_api_version = "v3"
 github_api_url = "https://api.github.com"
-commits_api_url_tpl = github_api_url + "/repos/{}/{}/commits?since{}&sha={}"
+commits_api_url_tpl = github_api_url + "/repos/{}/{}/commits?since={}&sha={}"
 
 github_common_header = {
     "Authorization": "Bearer {}".format(os.environ['GITHUB_ACCESS_TOKEN']),
@@ -43,6 +43,13 @@ def is_empty_request_field (body, name):
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
+def log_msg (log_level, message):
+    cong_log_level = os.environ['LOG_LEVEL']
+    if log_level == "error" or log_level == "ERROR" or log_level == "fatal" or log_level == "FATAL":
+        eprint ("[{}] {}".format(log_level, message))
+    elif cong_log_level == log_level or cong_log_level == "debug" or cong_log_level == "DEBUG":
+        print ("[{}] {}".format(log_level, message))
+
 def is_not_ok(body):
     return not "status" in body or body["status"] != "ok"
 
@@ -63,7 +70,7 @@ def check_response_code(code, api):
 
 def check_mandatory_param(body, name):
     if is_empty_request_field(body, name):
-        eprint("[check_mandatory_param] bad request : missing argument = {}, body = {}".format(name, request.data))
+        log_msg("error", "[check_mandatory_param] bad request : missing argument = {}, body = {}".format(name, request.data))
         return {
             "status": "bad_request",
             "reason": "missing {} argument".format(name)
@@ -83,7 +90,8 @@ def check_iso8601_request_param(body, name):
                 "status": "ok"
             }
     except:
-        pass
+        log_msg("error", "[check_iso8601_request_param] bad request {} is not an iso formated date".format(name))
+
     return {
         "status": "bad_request",
         "reason": "argument {} is not an iso format date".format(name)
@@ -109,7 +117,10 @@ class ChangelogApi(Resource):
         if is_not_ok(c):
             return c, 400
 
-        commits_req = requests.get(commits_api_url_tpl.format(body['org'], body['repo'], body['since'], body['ref']))
+        commits_api_url = commits_api_url_tpl.format(body['org'], body['repo'], body['since'], body['ref'])
+        log_msg("debug", "invoking {}".format(commits_api_url))
+        commits_req = requests.get(commits_api_url, headers=github_common_header)
+
         c = check_response_code(commits_req.status_code, "commits")
         if is_not_ok(c):
             return c, 500
