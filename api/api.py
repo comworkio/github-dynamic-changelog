@@ -12,6 +12,7 @@ import os
 import json
 import sys
 import re
+import requests
 
 app = Flask(__name__)
 api = Api(app)
@@ -49,7 +50,7 @@ def is_response_ok(code):
     ok_codes = [200, 201, 204]
     return any(c == code for c in ok_codes)
 
-def check_response_not_ok(code, api):
+def check_response_code(code, api):
     if not is_response_ok(code):
         return {
             "status": "server_error",
@@ -108,8 +109,9 @@ class ChangelogApi(Resource):
         if is_not_ok(c):
             return c, 400
 
-        commits_req = request.get(commits_api_url_tpl.format(body['org'], body['repo'], body['since'], body['ref']))
-        if check_response_not_ok(commits_req.status_code, "commits"):
+        commits_req = requests.get(commits_api_url_tpl.format(body['org'], body['repo'], body['since'], body['ref']))
+        c = check_response_code(commits_req.status_code, "commits")
+        if is_not_ok(c):
             return c, 500
 
         return commits_req.json()
