@@ -16,16 +16,15 @@ import re
 app = Flask(__name__)
 api = Api(app)
 
-def get_script_output (cmd):
-    print("[get_script_output] cmd = {}".format(cmd))
-    try:
-        return check_output(cmd, shell=True, text=True)
-    except:
-        return check_output(cmd, shell=True, universal_newlines=True)
+github_api_version = "v3"
+github_api_url = "https://api.github.com"
+commits_api_url_base = "{}/repos/shippeo/shippeo-deployments/commits".format(github_api_url)
+commits_api_url_tpl = commits_api_url_base + "?since{}&sha={}"
 
-def is_forbidden (var):
-    forbidden_chars = ["'" , "\"", "&", ";", "|", "\\"]
-    return any(char in var for char in forbidden_chars)
+github_common_header = {
+    "Authorization": "Bearer {}".format(os.environ['GITHUB_ACCESS_TOKEN']),
+    "Accept": "application/vnd.github.{}+json".format(github_api_version)
+}
 
 def is_not_empty (var):
     if (isinstance(var, bool)):
@@ -38,8 +37,7 @@ def is_not_empty (var):
 def is_empty (var):
     return not is_not_empty(var)
 
-def is_empty_request_field (name):
-    body = request.get_json(force=True)
+def is_empty_request_field (body, name):
     return not name in body or is_empty(body[name])
 
 def eprint(*args, **kwargs):
@@ -48,8 +46,23 @@ def eprint(*args, **kwargs):
 def is_not_ok(body):
     return not "status" in body or body["status"] != "ok"
 
-def check_mandatory_param(name):
-    if is_empty_request_field(name):
+def is_response_ok(code):
+    ok_codes = [200, 201, 204]
+    return any(c == code for c in ok_codes)
+
+def check_response_not_ok(code, api):
+    if not is_response_ok(code):
+        return {
+            "status": "server_error",
+            "reason": "api {} didn't answer correctly: status_code = {}".format(api, code)
+        }
+    else:
+        return {
+            "status": "ok"
+        }
+
+def check_mandatory_param(body, name):
+    if is_empty_request_field(body, name):
         eprint("[check_mandatory_param] bad request : missing argument = {}, body = {}".format(name, request.data))
         return {
             "status": "bad_request",
@@ -60,128 +73,40 @@ def check_mandatory_param(name):
             "status": "ok"
         }
 
-def run_cmd():
-    return get_script_output(os.environ['API_CMD'])
+regex_data_iso = r'^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$'
+match_iso8601 = re.compile(regex_data_iso).match
 
-def run_cmd_async():
-    print("[run_cmd_async] output = {}".format(run_cmd()))
-
-def run_cmd_argv():
-    body = request.get_json(force=True)
-    cmd = "{} {}".format(os.environ['API_CMD'], body['argv'])
-    return get_script_output(cmd)
-
-def run_cmd_async_argv():
-    print("[run_cmd_async] output = {}".format(run_cmd_argv()))
-
-def check_api_cmd_is_defined():
-    if is_empty(os.environ.get('API_CMD')):
-        return {
-            'status': 'forbidden',
-            'reason': 'API_CMD is not defined for this instance'
-        }
-    else:
-        return {
-            'status': 'ok'
-        }
-
-def check_argv_is_enabled():
-    regexp_argv = os.environ.get('REGEXP_ARGV')
-    enable_argv = os.environ.get('ENABLE_ARGV')
-    body = request.get_json(force=True)
-    argv = body['argv']
-
-    if is_empty(enable_argv) or enable_argv != "enabled":
-        return {
-            'status': 'forbidden',
-            'reason': "ENABLE_ARGV is not enabled : value = {}".format(enable_argv)
-        }
-    elif is_not_empty(regexp_argv):
-        if re.match(regexp_argv, argv) and not is_forbidden(argv):
+def check_iso8601_request_param(body, name):
+    try:            
+        if not is_empty_request_field(body, name) and match_iso8601(body[name]) is not None:
             return {
-               'status': 'ok'
+                "status": "ok"
             }
-        else:
-            return {
-                'status': 'forbidden',
-                'reason': "Args {} are not matching {}".format(argv, regexp_argv)
-            } 
-    else:
-        return {
-            'status': 'ok'
-        }
+    except:
+        pass
+    return {
+        "status": "bad_request",
+        "reason": "argument {} is not an iso format date".format(name)
+    }
 
-class AsyncCmdApi(Resource):
-    def get(self):
-        c = check_api_cmd_is_defined()
-        if is_not_ok(c):
-            return c, 403
-
-        async_process = Process( 
-            target=run_cmd_async,
-            daemon=True
-        )
-        async_process.start()
-        return {
-            'status': 'ok',
-            'executed': True,
-            'async': True
-        }
+class ChangelogApi(Resource):
     def post(self):
-        c = check_api_cmd_is_defined()
-        if is_not_ok(c):
-            return c, 403
+        body = request.get_json(force=True)
 
-        c = check_mandatory_param('argv')
+        c = check_mandatory_param(body, 'ref')
         if is_not_ok(c):
             return c, 400
 
-        c = check_argv_is_enabled()
-        if is_not_ok(c):
-            return c, 403
-
-        async_process = Process( 
-            target=run_cmd_async_argv,
-            daemon=True
-        )
-        async_process.start()
-        return {
-            'status': 'ok',
-            'executed': True,
-            'async': True
-        }
-
-class CmdApi(Resource):
-    def get(self):
-        c = check_api_cmd_is_defined()
-        if is_not_ok(c):
-            return c, 403
-
-        output = run_cmd()
-        return {
-            'status': 'ok',
-            'executed': True,
-            'details': output
-        }
-    def post(self):
-        c = check_api_cmd_is_defined()
-        if is_not_ok(c):
-            return c, 403
-            
-        c = check_mandatory_param('argv')
+        c = check_iso8601_request_param(body, 'since')
         if is_not_ok(c):
             return c, 400
 
-        c = check_argv_is_enabled()
-        if is_not_ok(c):
-            return c, 403
+        commits_req = request.get(commits_api_url_tpl.format(body['since'], body['ref']))
+        if check_response_not_ok(commits_req.status_code, "commits"):
+            return c, 500
 
-        output = run_cmd_argv()
-        return {
-            'status': 'ok',
-            'executed': True,
-            'details': output
-        }
+        return commits_req.json()
+        
 
 class RootEndPoint(Resource):
     def get(self):
@@ -202,14 +127,12 @@ class ManifestEndPoint(Resource):
                 'reason': err
             }, 500
 
-health_check_routes = ['/', '/health', '/health/']
-cmd_routes = ['/cmd', '/cmd-api', '/cmd/', '/cmd-api/']
-async_cmd_routes = ['/cmd/async', '/cmd-api/async', '/cmd/async/', '/cmd-api/async/']
-manifest_routes = ['/manifest', '/manifest/']
+health_check_routes = ['/', '/health', '/health/', '/v1', '/v1/', '/v1/health', '/v1/health/']
+changelog_routes = ['/changelog', '/changelog/', '/v1/changelog', '/v1/changelog/']
+manifest_routes = ['/manifest', '/manifest/', '/v1/manifest', '/v1/manifest/']
 
 api.add_resource(RootEndPoint, *health_check_routes)
-api.add_resource(CmdApi, *cmd_routes)
-api.add_resource(AsyncCmdApi, *async_cmd_routes)
+api.add_resource(ChangelogApi, *changelog_routes)
 api.add_resource(ManifestEndPoint, *manifest_routes)
 
 if __name__ == '__main__':
