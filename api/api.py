@@ -18,8 +18,7 @@ api = Api(app)
 
 github_api_version = "v3"
 github_api_url = "https://api.github.com"
-commits_api_url_base = "{}/repos/shippeo/shippeo-deployments/commits".format(github_api_url)
-commits_api_url_tpl = commits_api_url_base + "?since{}&sha={}"
+commits_api_url_tpl = github_api_url + "/repos/{}/{}/commits?since{}&sha={}"
 
 github_common_header = {
     "Authorization": "Bearer {}".format(os.environ['GITHUB_ACCESS_TOKEN']),
@@ -97,17 +96,24 @@ class ChangelogApi(Resource):
         if is_not_ok(c):
             return c, 400
 
+        c = check_mandatory_param(body, 'org')
+        if is_not_ok(c):
+            return c, 400
+
+        c = check_mandatory_param(body, 'repo')
+        if is_not_ok(c):
+            return c, 400
+
         c = check_iso8601_request_param(body, 'since')
         if is_not_ok(c):
             return c, 400
 
-        commits_req = request.get(commits_api_url_tpl.format(body['since'], body['ref']))
+        commits_req = request.get(commits_api_url_tpl.format(body['org'], body['repo'], body['since'], body['ref']))
         if check_response_not_ok(commits_req.status_code, "commits"):
             return c, 500
 
         return commits_req.json()
         
-
 class RootEndPoint(Resource):
     def get(self):
         return {
