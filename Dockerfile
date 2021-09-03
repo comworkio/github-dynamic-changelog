@@ -8,7 +8,7 @@ ENV PYTHONUNBUFFERED=1 \
     WERKZEUG_RUN_MAIN=true \
     MANIFEST_FILE_PATH=/manifest.json \
     LOG_LEVEL=info \
-    PAGE_SIZE=5
+    PAGE_SIZE=10
 
 COPY ./api/api.py ./manifest.json ./api/requirements.txt /
 

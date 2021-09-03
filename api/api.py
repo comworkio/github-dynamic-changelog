@@ -139,15 +139,16 @@ class ChangelogApi(Resource):
         j=0
         
         for commit in commits_list:
+            short_commit = commit['sha'][0:8]
             if i >= max:
                 i=0
                 j+=1
-                commit_concats.append(commit['sha'])
+                commit_concats.append(short_commit)
             elif len(commit_concats) <= j:
-                commit_concats.append(commit['sha'])
+                commit_concats.append(short_commit)
                 i+=1
             else:
-                commit_concats[j] = "{}+{}".format(commit_concats[j], commit['sha'])
+                commit_concats[j] = "{}+{}".format(commit_concats[j], short_commit)
                 i+=1
 
         for commits in commit_concats:
