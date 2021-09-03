@@ -14,10 +14,10 @@ mirror:
 build_and_deliver:
   stage: deliver
   script:
-    - setsid ./ci/docker-deliver.sh "x86" "github-dynamic-changelog" "0.1"
+    - setsid ./ci/docker-deliver.sh "x86" "github-dynamic-changelog" "1.0"
   only:
     refs:
-      - /^(master.*)$/
+      - /^(main.*)$/
     changes:
       - .gitlab-ci.yml
       - api.py
