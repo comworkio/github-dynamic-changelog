@@ -11,7 +11,7 @@ mirror:
   tags:
     - github-changelog
 
-build_and_deliver:
+x86:
   stage: deliver
   script:
     - setsid ./ci/docker-deliver.sh "x86" "github-dynamic-changelog" "1.2"
@@ -27,3 +27,20 @@ build_and_deliver:
       - Dockerfile
   tags:
     - github-changelog
+
+arm:
+  stage: deliver
+  script:
+    - setsid ./ci/docker-deliver.sh "arm" "github-dynamic-changelog" "1.2"
+  only:
+    refs:
+      - /^(main.*)$/
+    changes:
+      - .gitlab-ci.yml
+      - api.py
+      - requirements.txt
+      - ci/docker-deliver.sh
+      - docker-compose-build-arm.yml
+      - Dockerfile.arm
+  tags:
+    - buildarm
