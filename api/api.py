@@ -133,6 +133,7 @@ class ChangelogApi(Resource):
         }
 
         max = int(os.environ['PAGE_SIZE'])
+        is_details = not is_empty_request_field(body, 'details')
         commits_list = commits_response.json()
         commit_concats = []
         i=0
@@ -160,8 +161,27 @@ class ChangelogApi(Resource):
                 return c, search_response.status_code
 
             search_result = search_response.json()
+            
             if "total_count" in search_result and search_result['total_count'] > 0:
-                return search_result
+                for issue in search_result['items']:
+                    if is_details:
+                        issue_response = requests.get(issue['url'], headers=github_common_header)
+                        c = check_response_code(search_response, "issue")
+                        if is_not_ok(c):
+                            results['issues'].append({
+                                'url': issue['url']
+                            })
+                        else:
+                            details = issue_response.json()
+                            results['issues'].append({
+                                'url': issue['url'],
+                                'title': details['title'],
+                                'author': details['user']['login']
+                            })
+                    else:
+                        results['issues'].append({
+                            'url': issue['url']
+                        })
 
         return results
 
