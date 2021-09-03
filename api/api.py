@@ -20,7 +20,7 @@ api = Api(app)
 github_api_version = "v3"
 github_api_url = "https://api.github.com"
 commits_api_url_tpl = github_api_url + "/repos/{}/{}/commits?since={}&sha={}"
-search_api_url_tpl = github_api_url + "/search/issues?q=type:pr+repo:{}%2F{}+head:{}+{}"
+search_api_url_tpl = github_api_url + "/search/issues?q=type:pr+repo:{}%2F{}+{}"
 issue_from_pr_api_url = github_api_url + "repos/{}/{}/pulls/{}"
 
 github_common_header = {
@@ -132,9 +132,26 @@ class ChangelogApi(Resource):
             "issues": []
         }
 
-        commits = commits_response.json()
-        for commit in commits:
-            search_api_url = search_api_url_tpl.format(body['org'], body['repo'], body['ref'], commit['sha'])
+        max = int(os.environ['PAGE_SIZE'])
+        commits_list = commits_response.json()
+        commit_concats = []
+        i=0
+        j=0
+        
+        for commit in commits_list:
+            if i >= max:
+                i=0
+                j+=1
+                commit_concats.append(commit['sha'])
+            elif len(commit_concats) <= j:
+                commit_concats.append(commit['sha'])
+                i+=1
+            else:
+                commit_concats[j] = "{}+{}".format(commit_concats[j], commit['sha'])
+                i+=1
+
+        for commits in commit_concats:
+            search_api_url = search_api_url_tpl.format(body['org'], body['repo'], commits)
             log_msg("debug", "invoking search_api_url = {}".format(search_api_url))
             search_response = requests.get(search_api_url, headers=github_common_header)
             c = check_response_code(search_response, "search")
