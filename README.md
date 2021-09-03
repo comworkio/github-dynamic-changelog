@@ -15,6 +15,10 @@ This api is available as a ready to use docker image.
 * Github mirror: https://github.com/idrissneumann/github-dynamic-changelog.git
 * Gitlab mirror: https://gitlab.com/ineumann/github-dynamic-changelog.git
 
+## Image on the dockerhub
+
+The image is available and versioned here: https://hub.docker.com/r/comworkio/github-dynamic-changelog
+
 ## Running with docker-compose
 
 First create your `.env` file from the `.env.example`:
