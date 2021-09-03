@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, Response
 
 ## https://github.com/flask-restful/flask-restful/pull/913
 import flask.scaffold
@@ -35,6 +35,17 @@ def is_not_empty (var):
         return False
     empty_chars = ["", "null", "nil", "false", "none"]
     return var is not None and not any(c == var.lower() for c in empty_chars)
+
+def determine_mime_type (mime):
+    known_mime_types = ["application/json", "text/csv", "text/markdown"]
+    if mime is None:
+        return known_mime_types[0]
+    
+    for m in known_mime_types:
+        if mime.lower().startswith(m):
+            return m
+
+    return known_mime_types[0]
 
 def is_empty (var):
     return not is_not_empty(var)
@@ -139,6 +150,10 @@ class ChangelogApi(Resource):
         if not is_empty_request_field(body, 'filter_author'):
             filter_author = body['filter_author']
 
+        mime = "application/json"
+        if not is_empty_request_field(body, 'format'):
+            mime = format
+
         commits_list = commits_response.json()
         commit_concats = []
         i=0
@@ -193,7 +208,22 @@ class ChangelogApi(Resource):
                             'url': issue['url']
                         })
 
-        return results
+        if is_empty_request_field(body, 'format'):
+            return results
+
+        mime = determine_mime_type(body['format'])
+        response = results
+
+        if mime == "text/csv":
+            response = "title;url;author\n"
+            for result in results['issues']:
+                response += "{};{};{}\r\n".format(result['title'] if 'title' in result else "", result['url'], result['author'] if 'author' in result else "")
+        elif mime == "text/markdown":
+            response = "# Changelog since {} for the repository {}/{}\n\nIssues :\n".format(body['since'], body['org'], body['repo'])
+            for result in results['issues']:
+                response += "* {} - {} - {}\r\n".format(result['title'] if 'title' in result else "", result['url'], result['author'] if 'author' in result else "")
+        
+        return Response(response, mimetype=mime)
 
         
 class RootEndPoint(Resource):
