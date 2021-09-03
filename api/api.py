@@ -150,6 +150,10 @@ class ChangelogApi(Resource):
         if not is_empty_request_field(body, 'filter_author'):
             filter_author = body['filter_author']
 
+        filter_message = None
+        if not is_empty_request_field(body, 'filter_message'):
+            filter_message = body['filter_message']
+
         mime = "application/json"
         if not is_empty_request_field(body, 'format'):
             mime = format
@@ -158,9 +162,16 @@ class ChangelogApi(Resource):
         commit_concats = []
         i=0
         j=0
-        
+
         for commit in commits_list:
             short_commit = commit['sha'][0:8]
+
+            if commit['commit']['author']['name'] == filter_author or commit['commit']['committer']['name'] == filter_author:
+                continue
+
+            if filter_message is not None and filter_message.lower() in commit['commit']['message'].lower():
+                continue
+
             if i >= max:
                 i=0
                 j+=1
