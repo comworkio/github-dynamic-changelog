@@ -134,6 +134,11 @@ class ChangelogApi(Resource):
 
         max = int(os.environ['PAGE_SIZE'])
         is_details = not is_empty_request_field(body, 'details')
+
+        filter_author = None
+        if not is_empty_request_field(body, 'filter_author'):
+            filter_author = body['filter_author']
+
         commits_list = commits_response.json()
         commit_concats = []
         i=0
@@ -173,10 +178,15 @@ class ChangelogApi(Resource):
                             })
                         else:
                             details = issue_response.json()
+                            author = details['user']['login']
+
+                            if author == filter_author:
+                                continue
+
                             results['issues'].append({
                                 'url': issue['url'],
                                 'title': details['title'],
-                                'author': details['user']['login']
+                                'author': author
                             })
                     else:
                         results['issues'].append({
