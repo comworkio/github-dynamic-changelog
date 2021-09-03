@@ -59,11 +59,11 @@ def is_response_ok(code):
     ok_codes = [200, 201, 204]
     return any(c == code for c in ok_codes)
 
-def check_response_code(code, api):
-    if not is_response_ok(code):
+def check_response_code(response, api):
+    if not is_response_ok(response.status_code):
         return {
             "status": "server_error",
-            "reason": "api {} didn't answer correctly: status_code = {}".format(api, code)
+            "reason": "api {} didn't answer correctly: status_code = {}, response = {}".format(api, response.status_code, response.text)
         }
     else:
         return {
@@ -121,27 +121,29 @@ class ChangelogApi(Resource):
 
         commits_api_url = commits_api_url_tpl.format(body['org'], body['repo'], body['since'], body['ref'])
         log_msg("debug", "invoking commits_api_url = {}".format(commits_api_url))
-        commits_req = requests.get(commits_api_url, headers=github_common_header)
+        commits_response = requests.get(commits_api_url, headers=github_common_header)
 
-        c = check_response_code(commits_req.status_code, "commits")
+        c = check_response_code(commits_response, "commits")
         if is_not_ok(c):
-            return c, 500
+            return c, commits_response.status_code
 
         results = {
             "status": "ok",
             "issues": []
         }
 
-        commits = commits_req.json()
+        commits = commits_response.json()
         for commit in commits:
             search_api_url = search_api_url_tpl.format(body['org'], body['repo'], body['ref'], commit['sha'])
-            log_msg("debug", "invoking search_api_url = {}".format(commits_api_url))
-            search_req = requests.get(search_api_url, headers=github_common_header)
-            c = check_response_code(search_req.status_code, "search")
+            log_msg("debug", "invoking search_api_url = {}".format(search_api_url))
+            search_response = requests.get(search_api_url, headers=github_common_header)
+            c = check_response_code(search_response, "search")
             if is_not_ok(c):
-                return c, 500
+                return c, search_response.status_code
 
-            return search_req.json()
+            search_result = search_response.json()
+            if "total_count" in search_result and search_result['total_count'] > 0:
+                return search_result
 
         return results
 
