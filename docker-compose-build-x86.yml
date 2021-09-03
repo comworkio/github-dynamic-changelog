@@ -1,7 +1,7 @@
 version: "3.3"
 
 services: 
-  github-dynamic-changelog_x86:
+  github-dynamic-changelog:
     image: comworkio/github-dynamic-changelog:latest
     build: 
       context: .
