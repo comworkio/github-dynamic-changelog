@@ -19,7 +19,8 @@ api = Api(app)
 
 github_api_version = "v3"
 github_api_url = "https://api.github.com"
-commits_api_url_tpl = github_api_url + "/repos/{}/{}/commits?since={}&sha={}"
+github_max_per_page = os.environ['GITHUB_MAX_PER_PAGE']
+commits_api_url_tpl = github_api_url + "/repos/{}/{}/commits?since={}&sha={}&per_page=" + github_max_per_page
 search_api_url_tpl = github_api_url + "/search/issues?q=type:pr+repo:{}%2F{}+{}"
 issue_from_pr_api_url = github_api_url + "repos/{}/{}/pulls/{}"
 
@@ -138,6 +139,23 @@ class ChangelogApi(Resource):
         if is_not_ok(c):
             return c, commits_response.status_code
 
+        commits_list = commits_response.json()
+        page = 1
+        len_page = len(commits_list)
+        while len_page >= int(github_max_per_page):
+            commits_api_url_paged = commits_api_url + "&page={}".format(page)
+            log_msg("debug", "len_page = {}, invoking commits_api_url_paged = {}".format(len_page, commits_api_url_paged))
+            commits_response_paged = requests.get(commits_api_url_paged, headers=github_common_header)
+            c = check_response_code(commits_response_paged, "commits")
+            if is_not_ok(c):
+                break
+
+            page_results = commits_response_paged.json()
+            len_page = len(page_results)
+            if len_page > 0 and 'sha' in page_results[0]:
+                commits_list += page_results
+            page += 1
+
         results = {
             "status": "ok",
             "issues": []
@@ -158,7 +176,6 @@ class ChangelogApi(Resource):
         if not is_empty_request_field(body, 'format'):
             mime = format
 
-        commits_list = commits_response.json()
         commit_concats = []
         i=0
         j=0
