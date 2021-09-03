@@ -33,6 +33,11 @@ Then replace the values (like the `GITHUB_ACCESS_TOKEN` with one of your own). T
 $ docker-compose up
 ```
 
+If you want to test on a raspberrypi or any other ARM device, use this command instead:
+
+```shell
+$ docker-compose -f docker-compose-arm.yml up
+```
 ## Endpoints
 
 ### Healthcheck

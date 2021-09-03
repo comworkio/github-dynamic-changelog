@@ -5,4 +5,4 @@ services:
     image: comworkio/github-dynamic-changelog:latest
     build: 
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.arm
