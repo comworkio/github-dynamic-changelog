@@ -23,6 +23,7 @@ build_and_deliver:
       - api.py
       - requirements.txt
       - ci/docker-deliver.sh
+      - docker-compose-build-x86.yml
       - Dockerfile
   tags:
     - github-changelog
