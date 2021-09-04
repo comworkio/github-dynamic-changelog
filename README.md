@@ -19,6 +19,15 @@ This api is available as a ready to use docker image.
 
 The image is available and versioned here: https://hub.docker.com/r/comworkio/github-dynamic-changelog
 
+## Test the api
+
+Here's an available endpoint to test the api with public repositories: https://github-dynamic-changelog.comwork.io/
+
+Example of results:
+
+![github-dynamic-changelog](./images/github-dynamic-changelog.png)
+
+You can see the "Endpoints" section below to get all the available endpoints.
 ## Running with docker-compose
 
 First create your `.env` file from the `.env.example`:
