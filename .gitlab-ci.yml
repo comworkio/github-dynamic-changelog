@@ -1,6 +1,7 @@
 stages:
   - publish
   - deliver
+  - deploy
 
 mirror:
   stage: publish
@@ -44,3 +45,20 @@ arm:
       - Dockerfile.arm
   tags:
     - buildarm
+
+deploy:
+  stage: deploy
+  script:
+    - setsid ./ci/deploy.sh
+  only:
+    refs:
+      - /^(main.*)$/
+    changes:
+      - .gitlab-ci.yml
+      - api.py
+      - requirements.txt
+      - ci/docker-deliver.sh
+      - docker-compose-build.yml
+      - Dockerfile
+  tags:
+    - github-changelog
