@@ -62,6 +62,6 @@ curl localhost:8080/v1/changelog -X POST -d '{"ref":"master", "org": "shippeo", 
 
 Note:
 * `format` supports also `text/csv` and `application/json` (which is the default value)
-* `filter_author` is not required but if it's defined, it will filter all issues opened by a login matching this value
+* `filter_author` is not required but if it's defined, it will filter all the pull requests opened by a login matching this value
 * `filter_message` is not required but if it's defined, it will filter the commit which have their messages matching this value
 
