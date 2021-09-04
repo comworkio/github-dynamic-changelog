@@ -140,7 +140,8 @@ def extract_issues_from_text(text, org, repo, issues, known_issues_ids):
                     continue
                 issues.append({
                     "url": details['html_url'],
-                    "title": details['title']
+                    "title": details['title'],
+                    "author": details['user']['login']
                 })
 
 class ChangelogApi(Resource):
@@ -274,17 +275,17 @@ class ChangelogApi(Resource):
         if mime == "text/csv":
             response = "title;url;author\n"
             for result in results['issues']:
-                response += "{};{};{}\n".format(result['title'] if 'title' in result else "", result['url'], result['author'] if 'author' in result else "")
+                response += "{};{};{}\n".format(result['title'], result['url'], result['author'])
             for result in results['prs']:
-                response += "{};{};{}\n".format(result['title'] if 'title' in result else "", result['url'], result['author'] if 'author' in result else "")
+                response += "{};{};{}\n".format(result['title'], result['url'], result['author'])
             return Response(response, mimetype=mime)
         elif mime == "text/markdown":
             response = "# Changelog since {} for the repository {}/{}\n\n## Issues\n\n".format(body['since'], body['org'], body['repo'])
             for result in results['issues']:
-                response += "* {} - {}\n".format(result['title'] if 'title' in result else "", result['url'])
+                response += "* {} - {} - {}\n".format(result['title'], result['url'], result['author'])
             response += "\n## Pull requests\n\n"
             for result in results['prs']:
-                response += "* {} - {} - {}\n".format(result['title'] if 'title' in result else "", result['url'], result['author'] if 'author' in result else "")
+                response += "* {} - {} - {}\n".format(result['title'], result['url'], result['author'])
             return Response(response, mimetype=mime)
         else:
             return results
