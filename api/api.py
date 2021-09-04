@@ -217,7 +217,7 @@ class ChangelogApi(Resource):
                         c = check_response_code(search_response, "issue")
                         if is_not_ok(c):
                             results['issues'].append({
-                                'url': issue['url']
+                                'url': issue['html_url']
                             })
                         else:
                             details = issue_response.json()
@@ -227,13 +227,13 @@ class ChangelogApi(Resource):
                                 continue
 
                             results['issues'].append({
-                                'url': issue['url'],
+                                'url': issue['html_url'],
                                 'title': details['title'],
                                 'author': author
                             })
                     else:
                         results['issues'].append({
-                            'url': issue['url']
+                            'url': issue['html_url']
                         })
 
         if is_empty_request_field(body, 'format'):
