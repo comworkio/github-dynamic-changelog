@@ -66,7 +66,7 @@ $ curl localhost:8080/v1/manifest
 ### Generate the changelog
 
 ```shell
-curl localhost:8080/v1/changelog -X POST -d '{"ref":"master", "org": "shippeo", "repo":"shippeo-deployments", "since":"2021-09-01T02:34:56-06:00", "format":"text/markdown"}' -v
+curl localhost:8080/v1/changelog -X POST -d '{"ref":"master", "org": "EbookFoundation", "repo":"free-programming-books", "since":"2021-09-01T02:34:56-06:00", "format":"text/markdown"}' -v
 ```
 
 Note:
