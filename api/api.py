@@ -99,6 +99,9 @@ match_iso8601 = re.compile(regexp_data_iso).match
 regexp_issues = r'#([0-9]+)'
 pattern_regexp_issues = re.compile(regexp_issues)
 
+regexp_pull_url = r'.*\/pull.*'
+match_pull_url = re.compile(regexp_pull_url).match
+
 def check_iso8601_request_param(body, name):
     try:            
         if not is_empty_request_field(body, name) and match_iso8601(body[name]) is not None:
@@ -113,7 +116,7 @@ def check_iso8601_request_param(body, name):
         "reason": "argument {} is not an iso format date".format(name)
     }
 
-def extract_issues_from_text(text, org, repo, is_details, issues, known_issues_ids):
+def extract_issues_from_text(text, org, repo, issues, known_issues_ids):
     if text.startswith("Merge"):
         return None
 
@@ -125,23 +128,20 @@ def extract_issues_from_text(text, org, repo, is_details, issues, known_issues_i
         log_msg("debug", "extract issue_id = {} in text = {}".format(issue_id, text))
         if issue_id not in known_issues_ids:
             known_issues_ids.append(issue_id)
-            if not is_details:
-                issues.append({
-                    "url": issue_url_tpl.format(org, repo, issue_id)
-                })
+            issue_api_url = issue_api_url_tpl.format(org, repo, issue_id)
+            log_msg("debug", "invoking issue_api_url = {}".format(issue_api_url))
+            issue_response = requests.get(issue_api_url, headers=github_common_header)
+            c = check_response_code(issue_response, "issue")
+            if is_not_ok(c):
+                continue
             else:
-                issue_api_url = issue_api_url_tpl.format(org, repo, issue_id)
-                log_msg("debug", "invoking issue_api_url = {}".format(issue_api_url))
-                issue_response = requests.get(issue_api_url, headers=github_common_header)
-                c = check_response_code(issue_response, "issue")
-                if is_not_ok(c):
+                details = issue_response.json()
+                if match_pull_url(details['html_url']):
                     continue
-                else:
-                    details = issue_response.json()
-                    issues.append({
-                        "url": issue_url_tpl.format(org, repo, issue_id),
-                        "title": details['title']
-                    })
+                issues.append({
+                    "url": details['html_url'],
+                    "title": details['title']
+                })
 
 class ChangelogApi(Resource):
     def post(self):
@@ -195,7 +195,6 @@ class ChangelogApi(Resource):
         }
 
         max = int(os.environ['PAGE_SIZE'])
-        is_details = not is_empty_request_field(body, 'details')
 
         filter_author = None
         if not is_empty_request_field(body, 'filter_author'):
@@ -223,7 +222,7 @@ class ChangelogApi(Resource):
             if filter_message is not None and filter_message.lower() in commit['commit']['message'].lower():
                 continue
 
-            extract_issues_from_text(commit['commit']['message'], body['org'], body['repo'], is_details, results['issues'], known_issues_ids)
+            extract_issues_from_text(commit['commit']['message'], body['org'], body['repo'], results['issues'], known_issues_ids)
 
             if i >= max:
                 i=0
@@ -248,28 +247,23 @@ class ChangelogApi(Resource):
             
             if "total_count" in search_result and search_result['total_count'] > 0:
                 for issue in search_result['items']:
-                    if is_details:
-                        issue_response = requests.get(issue['url'], headers=github_common_header)
-                        c = check_response_code(search_response, "issue")
-                        if is_not_ok(c):
-                            results['prs'].append({
-                                'url': issue['html_url']
-                            })
-                        else:
-                            details = issue_response.json()
-                            author = details['user']['login']
-
-                            if author == filter_author:
-                                continue
-
-                            results['prs'].append({
-                                'url': issue['html_url'],
-                                'title': details['title'],
-                                'author': author
-                            })
-                    else:
+                    issue_response = requests.get(issue['url'], headers=github_common_header)
+                    c = check_response_code(search_response, "issue")
+                    if is_not_ok(c):
                         results['prs'].append({
                             'url': issue['html_url']
+                        })
+                    else:
+                        details = issue_response.json()
+                        author = details['user']['login']
+
+                        if author == filter_author:
+                            continue
+
+                        results['prs'].append({
+                            'url': issue['html_url'],
+                            'title': details['title'],
+                            'author': author
                         })
 
         if is_empty_request_field(body, 'format'):

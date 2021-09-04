@@ -57,11 +57,10 @@ $ curl localhost:8080/v1/manifest
 ### Generate the changelog
 
 ```shell
-curl localhost:8080/v1/changelog -X POST -d '{"ref":"master", "org": "shippeo", "repo":"shippeo-deployments", "since":"2021-09-01T02:34:56-06:00","details":"true", "format":"text/markdown"}' -v
+curl localhost:8080/v1/changelog -X POST -d '{"ref":"master", "org": "shippeo", "repo":"shippeo-deployments", "since":"2021-09-01T02:34:56-06:00", "format":"text/markdown"}' -v
 ```
 
 Note:
-* `details` is not required but if it's not defined, you'll have only the url of issues (you'll have also the title and the author otherwise)
 * `format` supports also `text/csv` and `application/json` (which is the default value)
 * `filter_author` is not required but if it's defined, it will filter all issues opened by a login matching this value
 * `filter_message` is not required but if it's defined, it will filter the commit which have their messages matching this value
