@@ -245,7 +245,7 @@ class ChangelogApi(Resource):
             for result in results['issues']:
                 response += "{};{};{}\r\n".format(result['title'] if 'title' in result else "", result['url'], result['author'] if 'author' in result else "")
         elif mime == "text/markdown":
-            response = "# Changelog since {} for the repository {}/{}\n\nIssues :\n".format(body['since'], body['org'], body['repo'])
+            response = "# Changelog since {} for the repository {}/{}\n\nPull requests :\n".format(body['since'], body['org'], body['repo'])
             for result in results['issues']:
                 response += "* {} - {} - {}\r\n".format(result['title'] if 'title' in result else "", result['url'], result['author'] if 'author' in result else "")
         
