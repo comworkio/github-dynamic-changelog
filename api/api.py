@@ -20,7 +20,8 @@ github_api_url = "https://api.github.com"
 github_max_per_page = os.environ['GITHUB_MAX_PER_PAGE']
 commits_api_url_tpl = github_api_url + "/repos/{}/{}/commits?since={}&sha={}&per_page=" + github_max_per_page
 search_api_url_tpl = github_api_url + "/search/issues?q=type:pr+repo:{}%2F{}+{}"
-issue_from_pr_api_url = github_api_url + "repos/{}/{}/pulls/{}"
+issue_api_url_tpl = github_api_url + "/repos/{}/{}/issues/{}"
+issue_url_tpl = "https://github.com/{}/{}/issues/{}"
 
 github_common_header = {
     "Authorization": "Bearer {}".format(os.environ['GITHUB_ACCESS_TOKEN']),
@@ -92,8 +93,11 @@ def check_mandatory_param(body, name):
             "status": "ok"
         }
 
-regex_data_iso = r'^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$'
-match_iso8601 = re.compile(regex_data_iso).match
+regexp_data_iso = r'^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$'
+match_iso8601 = re.compile(regexp_data_iso).match
+
+regexp_issues = r'#([0-9]+)'
+pattern_regexp_issues = re.compile(regexp_issues)
 
 def check_iso8601_request_param(body, name):
     try:            
@@ -108,6 +112,36 @@ def check_iso8601_request_param(body, name):
         "status": "bad_request",
         "reason": "argument {} is not an iso format date".format(name)
     }
+
+def extract_issues_from_text(text, org, repo, is_details, issues, known_issues_ids):
+    if text.startswith("Merge"):
+        return None
+
+    issues_id = pattern_regexp_issues.search(text)
+    if issues_id is None:
+        return None
+
+    for issue_id in issues_id.groups():
+        log_msg("debug", "extract issue_id = {} in text = {}".format(issue_id, text))
+        if issue_id not in known_issues_ids:
+            known_issues_ids.append(issue_id)
+            if not is_details:
+                issues.append({
+                    "url": issue_url_tpl.format(org, repo, issue_id)
+                })
+            else:
+                issue_api_url = issue_api_url_tpl.format(org, repo, issue_id)
+                log_msg("debug", "invoking issue_api_url = {}".format(issue_api_url))
+                issue_response = requests.get(issue_api_url, headers=github_common_header)
+                c = check_response_code(issue_response, "issue")
+                if is_not_ok(c):
+                    continue
+                else:
+                    details = issue_response.json()
+                    issues.append({
+                        "url": issue_url_tpl.format(org, repo, issue_id),
+                        "title": details['title']
+                    })
 
 class ChangelogApi(Resource):
     def post(self):
@@ -156,6 +190,7 @@ class ChangelogApi(Resource):
 
         results = {
             "status": "ok",
+            "prs": [],
             "issues": []
         }
 
@@ -175,9 +210,10 @@ class ChangelogApi(Resource):
             mime = format
 
         commit_concats = []
+        known_issues_ids = []
         i=0
         j=0
-
+        
         for commit in commits_list:
             short_commit = commit['sha'][0:8]
 
@@ -186,6 +222,8 @@ class ChangelogApi(Resource):
 
             if filter_message is not None and filter_message.lower() in commit['commit']['message'].lower():
                 continue
+
+            extract_issues_from_text(commit['commit']['message'], body['org'], body['repo'], is_details, results['issues'], known_issues_ids)
 
             if i >= max:
                 i=0
@@ -214,7 +252,7 @@ class ChangelogApi(Resource):
                         issue_response = requests.get(issue['url'], headers=github_common_header)
                         c = check_response_code(search_response, "issue")
                         if is_not_ok(c):
-                            results['issues'].append({
+                            results['prs'].append({
                                 'url': issue['html_url']
                             })
                         else:
@@ -224,13 +262,13 @@ class ChangelogApi(Resource):
                             if author == filter_author:
                                 continue
 
-                            results['issues'].append({
+                            results['prs'].append({
                                 'url': issue['html_url'],
                                 'title': details['title'],
                                 'author': author
                             })
                     else:
-                        results['issues'].append({
+                        results['prs'].append({
                             'url': issue['html_url']
                         })
 
@@ -238,18 +276,24 @@ class ChangelogApi(Resource):
             return results
 
         mime = determine_mime_type(body['format'])
-        response = results
 
         if mime == "text/csv":
             response = "title;url;author\n"
             for result in results['issues']:
-                response += "{};{};{}\r\n".format(result['title'] if 'title' in result else "", result['url'], result['author'] if 'author' in result else "")
+                response += "{};{};{}\n".format(result['title'] if 'title' in result else "", result['url'], result['author'] if 'author' in result else "")
+            for result in results['prs']:
+                response += "{};{};{}\n".format(result['title'] if 'title' in result else "", result['url'], result['author'] if 'author' in result else "")
+            return Response(response, mimetype=mime)
         elif mime == "text/markdown":
-            response = "# Changelog since {} for the repository {}/{}\n\nPull requests :\n".format(body['since'], body['org'], body['repo'])
+            response = "# Changelog since {} for the repository {}/{}\n\n## Issues\n\n".format(body['since'], body['org'], body['repo'])
             for result in results['issues']:
-                response += "* {} - {} - {}\r\n".format(result['title'] if 'title' in result else "", result['url'], result['author'] if 'author' in result else "")
-        
-        return Response(response, mimetype=mime)
+                response += "* {} - {}\n".format(result['title'] if 'title' in result else "", result['url'])
+            response += "\n## Pull requests\n\n"
+            for result in results['prs']:
+                response += "* {} - {} - {}\n".format(result['title'] if 'title' in result else "", result['url'], result['author'] if 'author' in result else "")
+            return Response(response, mimetype=mime)
+        else:
+            return results
 
         
 class RootEndPoint(Resource):
