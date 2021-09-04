@@ -1,7 +1,6 @@
 #!/bin/bash
 
-REPO_PATH="/home/centos/kompose-api/"
+REPO_PATH="/home/centos/github-dynamic-changelog/"
 
 cd "${REPO_PATH}" && git pull origin main || :
-docker rm -f kompose-api_kompose-api_1 || :
-docker-compose -f docker-compose-comwork.yml up -d
+docker-compose -f docker-compose-comwork.yml up -d --force-recreate
