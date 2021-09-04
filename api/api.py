@@ -6,8 +6,6 @@ flask.helpers._endpoint_from_view_func = flask.scaffold._endpoint_from_view_func
 
 from flask_restful import Resource, Api
 
-from subprocess import check_output
-from multiprocessing import Process
 import os
 import json
 import sys
