@@ -58,7 +58,7 @@ deploy:
       - api.py
       - requirements.txt
       - ci/deploy.sh
-      - docker-compose-build.yml
+      - docker-compose-comwork.yml
       - Dockerfile
   tags:
     - github-changelog

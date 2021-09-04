@@ -1,0 +1,11 @@
+version: "3.3"
+
+services: 
+  github-dynamic-changelog:
+    image: comworkio/github-dynamic-changelog:latest
+    container_name: github-dynamic-changelog
+    env_file: 
+      - .env
+    ports: 
+      - 8073:8080
+
