@@ -1,11 +1,12 @@
 import os
-import json
 import requests
 
 from flask import Flask, request, Response
 from flask_restful import Resource, Api
 
 from changelog_utils import *
+from api_root import RootEndPoint
+from api_manifest import ManifestEndPoint
 
 app = Flask(__name__)
 api = Api(app)
@@ -154,26 +155,6 @@ class ChangelogApi(Resource):
             return Response(response, mimetype=mime)
         else:
             return results
-
-        
-class RootEndPoint(Resource):
-    def get(self):
-        return {
-            'status': 'ok',
-            'alive': True
-        }
-
-class ManifestEndPoint(Resource):
-    def get(self):
-        try:
-            with open(os.environ['MANIFEST_FILE_PATH']) as manifest_file:
-                manifest = json.load(manifest_file)
-                return manifest
-        except IOError as err:
-            return {
-                'status': 'error', 
-                'reason': err
-            }, 500
 
 health_check_routes = ['/', '/health', '/health/', '/v1', '/v1/', '/v1/health', '/v1/health/']
 changelog_routes = ['/changelog', '/changelog/', '/v1/changelog', '/v1/changelog/']
