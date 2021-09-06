@@ -15,7 +15,7 @@ mirror:
 x86:
   stage: deliver
   script:
-    - setsid ./ci/docker-deliver.sh "x86" "github-dynamic-changelog" "1.12"
+    - setsid ./ci/docker-deliver.sh "x86" "github-dynamic-changelog" "2.0"
   only:
     refs:
       - /^(main.*)$/
@@ -32,7 +32,7 @@ x86:
 arm:
   stage: deliver
   script:
-    - setsid ./ci/docker-deliver.sh "arm" "github-dynamic-changelog" "1.12"
+    - setsid ./ci/docker-deliver.sh "arm" "github-dynamic-changelog" "2.0"
   only:
     refs:
       - /^(main.*)$/

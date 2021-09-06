@@ -73,3 +73,15 @@ Note:
 * `format` supports also `text/csv` and `application/json` (which is the default value)
 * `filter_author` is not required but if it's defined, it will filter all the pull requests opened by a login matching this value
 * `filter_message` is not required but if it's defined, it will filter the commit which have their messages matching this value
+
+### Update the issues associated to a given pull request
+
+Update the issues associated to a given pull request with the target branch (that correspond to an environment).
+
+```shell
+curl -X POST "http://localhost:8080/v1/label" -d '{"pr_id":"2648", "org": "idrissneumann", "repo":"shmwrapper"}'
+```
+
+Note:
+* `label` is not required, if it's not defined, the pull request target branch will be taken as the label to add to the issues
+* if you want to change the label color, you might have to create the wanted label to github with the wanted color first

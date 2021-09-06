@@ -117,7 +117,9 @@ def extract_issues_from_text(text, org, repo, issues, known_issues_ids):
                 if match_pull_url(details['html_url']):
                     continue
                 issues.append({
+                    "id": issue_id,
                     "url": details['html_url'],
                     "title": details['title'],
-                    "author": details['user']['login']
+                    "author": details['user']['login'],
+                    "labels": list(map(lambda label: label['name'], details['labels']))
                 })
