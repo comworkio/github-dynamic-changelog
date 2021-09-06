@@ -107,11 +107,13 @@ class ChangelogApi(Resource):
             
             if "total_count" in search_result and search_result['total_count'] > 0:
                 for issue in search_result['items']:
+                    id = issue['url'].rsplit('/',1)[1]
                     issue_response = requests.get(issue['url'], headers=github_common_header)
                     c = check_response_code(search_response, "issue")
                     if is_not_ok(c):
                         results['prs'].append({
-                            'url': issue['html_url']
+                            'id': id,
+                            'url': issue['url']
                         })
                     else:
                         details = issue_response.json()
@@ -121,9 +123,11 @@ class ChangelogApi(Resource):
                             continue
 
                         results['prs'].append({
+                            'id': id,
                             'url': issue['html_url'],
                             'title': details['title'],
-                            'author': author
+                            'author': author,
+                            'labels': list(map(lambda label: label['name'], details['labels']))
                         })
 
         if is_empty_request_field(body, 'format'):
