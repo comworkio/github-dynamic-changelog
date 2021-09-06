@@ -11,7 +11,7 @@ ENV PYTHONUNBUFFERED=1 \
     PAGE_SIZE=27 \
     GITHUB_MAX_PER_PAGE=100
 
-COPY ./api/api.py ./manifest.json ./api/requirements.txt /
+COPY ./api ./manifest.json /
 
 RUN pip3 install --upgrade pip && \
     pip3 install -r /requirements.txt
