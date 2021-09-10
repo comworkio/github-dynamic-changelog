@@ -12,7 +12,7 @@ mirror:
   tags:
     - github-changelog
 
-x86:
+api_x86:
   stage: deliver
   script:
     - setsid ./ci/docker-deliver.sh "x86" "github-dynamic-changelog" "2.1"
@@ -21,15 +21,30 @@ x86:
       - /^(main.*)$/
     changes:
       - .gitlab-ci.yml
-      - api.py
-      - requirements.txt
+      - api/*
       - ci/docker-deliver.sh
       - docker-compose-build-x86.yml
       - Dockerfile
   tags:
     - github-changelog
 
-arm:
+label_client_x86:
+  stage: deliver
+  script:
+    - setsid ./ci/docker-deliver.sh "x86" "github-label-client" "1.0"
+  only:
+    refs:
+      - /^(main.*)$/
+    changes:
+      - .gitlab-ci.yml
+      - label_client/*
+      - ci/docker-deliver.sh
+      - docker-compose-build-x86.yml
+      - Dockerfile
+  tags:
+    - github-changelog
+
+api_arm:
   stage: deliver
   script:
     - setsid ./ci/docker-deliver.sh "arm" "github-dynamic-changelog" "2.1"
@@ -38,8 +53,23 @@ arm:
       - /^(main.*)$/
     changes:
       - .gitlab-ci.yml
-      - api.py
-      - requirements.txt
+      - api/*
+      - ci/docker-deliver.sh
+      - docker-compose-build-arm.yml
+      - Dockerfile.arm
+  tags:
+    - buildarm
+
+label_arm:
+  stage: deliver
+  script:
+    - setsid ./ci/docker-deliver.sh "arm" "github-label-client" "1.0"
+  only:
+    refs:
+      - /^(main.*)$/
+    changes:
+      - .gitlab-ci.yml
+      - label_client/*
       - ci/docker-deliver.sh
       - docker-compose-build-arm.yml
       - Dockerfile.arm

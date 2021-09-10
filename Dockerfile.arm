@@ -21,4 +21,18 @@ RUN apt-get update -y && \
 
 EXPOSE 8080
 
-CMD ["python3", "-m", "flask", "run"]
+FROM balenalib/raspberrypi3-debian:latest AS label_client
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=UTF-8 \
+    LOG_LEVEL=info
+
+COPY ./label_client ./manifest.json /
+
+RUN apt-get update -y && \
+    apt-get install python3 python3-pip -y && \
+    pip3 install --upgrade pip && \
+    pip3 install -r /requirements.txt && \
+    rm -rf /var/lib/apt/lists/*
+
+CMD ["python3", "/label_client.py"]
