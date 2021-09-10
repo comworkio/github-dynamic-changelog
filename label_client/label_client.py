@@ -1,5 +1,4 @@
 import os
-import sys
 import json
 import requests
 
@@ -16,7 +15,11 @@ label_endpoint = "{}/v1/label".format(api_url)
 payload = json.load({"org": org, "repo": repo, "pr_id": pr_id})
 
 log_msg("debug", "invoking label_endpoint = {}".format(label_endpoint))
-label_response = requests.post(label_endpoint, data=payload)
+if is_not_empty(api_user) and is_not_empty(api_password):
+    label_response = requests.post(label_endpoint, data=payload, auth=(api_user, api_password))
+else:
+    label_response = requests.post(label_endpoint, data=payload)
+
 c = check_response_code(label_response, "label")
 if is_not_ok(c):
     log_msg("error", "Pr {} not patched : reason = {}".format(pr_id, c['reason']))

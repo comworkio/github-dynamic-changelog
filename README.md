@@ -85,3 +85,17 @@ curl -X POST "http://localhost:8080/v1/label" -d '{"pr_id":"2648", "org": "idris
 Note:
 * `label` is not required, if it's not defined, the pull request target branch will be taken as the label to add to the issues
 * if you want to change the label color, you might have to create the wanted label to github with the wanted color first
+
+## Add label to your issues with a CI/CD pipelines
+
+We provide a simple client to use that is available on the docker hub here: https://hub.docker.com/r/comworkio/github-label-client
+
+This will invoke the label api (see the previous "Update the issues associated to a given pull request" section) and will take the following environment variables:
+
+* `GITHUB_ORGANIZATION`: the organization or username that own the github repository
+* `GITHUB_REPOSITORY`: the repository
+* `PR_ID`: the pull request id that will be used to find all the associated issues to label
+* `API_URL` (not required): the https url of your hosted github api (default : `https://github-dynamic-changelog.comwork.io` which is only able to monitor public repo, so you'll probably have to override it with your own instance ;) )
+* `API_USER` (not required): username if the api is protected by a basic auth authentication
+* `API_PASSWORD` (not required): password if the api is protected by a basic auth authentication
+* `LOG_LEVEL` (not required - default `INFO`): the log level
