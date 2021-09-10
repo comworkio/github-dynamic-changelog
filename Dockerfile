@@ -1,4 +1,4 @@
-FROM python:3-alpine
+FROM python:3-alpine AS api
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8 \
