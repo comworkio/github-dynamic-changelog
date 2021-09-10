@@ -10,9 +10,14 @@ repo = os.environ['GITHUB_REPOSITORY']
 api_url = os.environ['API_URL']
 api_user = os.getenv('API_USER')
 api_password = os.getenv('API_PASSWORD')
+branch_name = os.environ['GIT_BRANCH']
 
 label_endpoint = "{}/v1/label".format(api_url)
 payload = json.load({"org": org, "repo": repo, "pr_id": pr_id})
+
+if not is_allowed_branch(branch_name):
+    log_msg("info", "the branch seems not be a protected branch = {}".format(branch_name))
+    exit ()
 
 log_msg("debug", "invoking label_endpoint = {}".format(label_endpoint))
 if is_not_empty(api_user) and is_not_empty(api_password):

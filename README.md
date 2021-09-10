@@ -95,6 +95,7 @@ This will invoke the label api (see the previous "Update the issues associated t
 * `GITHUB_ORGANIZATION`: the organization or username that own the github repository
 * `GITHUB_REPOSITORY`: the repository
 * `PR_ID`: the pull request id that will be used to find all the associated issues to label
+* `GIT_BRANCH`: the branch that have triggered the pipeline (it need to match `^([0-9]+.[0-9]+.x|master|develop|main|prod|qa|ppd|preprod)$` to perform the api, it's ignored otherwise)
 * `API_URL` (not required): the https url of your hosted github api (default : `https://github-dynamic-changelog.comwork.io` which is only able to monitor public repo, so you'll probably have to override it with your own instance ;) )
 * `API_USER` (not required): username if the api is protected by a basic auth authentication
 * `API_PASSWORD` (not required): password if the api is protected by a basic auth authentication

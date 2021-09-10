@@ -47,7 +47,7 @@ api_arm:
 label_client_x86:
   stage: deliver
   script:
-    - setsid ./ci/docker-deliver.sh "x86" "github-label-client" "1.1"
+    - setsid ./ci/docker-deliver.sh "x86" "github-label-client" "1.2"
   only:
     refs:
       - /^(main.*)$/
@@ -63,7 +63,7 @@ label_client_x86:
 label_arm:
   stage: deliver
   script:
-    - setsid ./ci/docker-deliver.sh "arm" "github-label-client" "1.1"
+    - setsid ./ci/docker-deliver.sh "arm" "github-label-client" "1.2"
   only:
     refs:
       - /^(main.*)$/

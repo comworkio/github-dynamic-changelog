@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 
 def is_not_empty (var):
@@ -25,6 +26,12 @@ def is_not_ok(body):
 def is_response_ok(code):
     ok_codes = [200, 201, 204]
     return any(c == code for c in ok_codes)
+
+regexp_allowed_branches = r'^([0-9]+.[0-9]+.x|master|develop|main|prod|qa|ppd|preprod)$'
+match_allowed_branches = re.compile(regexp_allowed_branches).match
+
+def is_allowed_branch(branch_name):
+    return match_allowed_branches(branch_name)
 
 def check_response_code(response, api):
     if not is_response_ok(response.status_code):
