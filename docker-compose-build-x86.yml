@@ -7,9 +7,4 @@ services:
       context: .
       dockerfile: Dockerfile
       target: api
-  github-label-client:
-    image: comworkio/github-label-client:latest
-    build: 
-      context: .
-      dockerfile: Dockerfile
-      target: label_client
+
