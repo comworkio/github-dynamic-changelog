@@ -88,7 +88,7 @@ def check_iso8601_request_param(body, name):
         "reason": "argument {} is not an iso format date".format(name)
     }
 
-regexp_issues = r'#([0-9]+)'
+regexp_issues = r'#[^\#]*?([0-9]+)'
 pattern_regexp_issues = re.compile(regexp_issues)
 
 regexp_pull_url = r'.*\/pull.*'
