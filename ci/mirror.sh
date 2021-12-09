@@ -1,6 +1,6 @@
 #!/bin/bash
 
-REPO_PATH="/home/centos/github-dynamic-changelog/"
+REPO_PATH="${PROJECT_HOME}/github-dynamic-changelog/"
 
 cd "${REPO_PATH}" && git pull origin main || :
 git push github main 

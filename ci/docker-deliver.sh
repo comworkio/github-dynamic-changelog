@@ -2,6 +2,7 @@
 
 BASE_DIR="$(dirname $0)"
 REPO_PATH="${BASE_DIR}/.."
+
 ARCH="${1}"
 IMAGE="${2}"
 VERSION="${3}"
