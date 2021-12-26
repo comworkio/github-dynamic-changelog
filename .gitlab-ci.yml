@@ -10,7 +10,7 @@ mirror:
   only:
     - /^(main.*)$/
   tags:
-    - github-changelog
+    - mirror
 
 api_x86:
   stage: deliver
