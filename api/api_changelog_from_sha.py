@@ -3,7 +3,7 @@ from flask_restful import Resource
 
 from changelog_utils import *
 
-class ChangelogApi(Resource):
+class ChangelogFromShaApi(Resource):
     def post(self):
         body = request.get_json(force=True)
 

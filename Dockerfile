@@ -19,4 +19,3 @@ RUN pip3 install --upgrade pip && \
 EXPOSE 8080
 
 CMD ["python3", "-m", "flask", "run"]
-
