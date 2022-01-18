@@ -68,7 +68,11 @@ $ curl localhost:8080/v1/manifest
 #### Changelog from protected branch
 
 ```shell
-curl localhost:8080/v1/changelog -X POST -d '{"ref":"master", "org": "EbookFoundation", "repo":"free-programming-books", "since":"2021-09-01T02:34:56-06:00", "format":"text/markdown"}' -v
+curl localhost:8080/v1/changelog -X POST -d '{"ref":"main", "org": "EbookFoundation", "repo":"free-programming-books", "since":"2021-09-01T02:34:56-06:00", "format":"text/markdown"}' -v
+```
+
+```shell
+curl https://github-dynamic-changelog.comwork.io/v1/changelog  -X POST -d '{"ref":"main", "org": "EbookFoundation", "repo":"free-programming-books", "since":"2021-09-01T02:34:56-06:00", "format":"text/markdown"}' -v
 ```
 
 Note:
@@ -80,6 +84,10 @@ Note:
 
 ```shell
 curl localhost:8080/v1/changelog/sha -X POST -d '{"sha":"0b318f6381cacfb9c79b332d7b256749f13da668", "org": "EbookFoundation", "repo":"free-programming-books", "format":"text/markdown"}' -v
+```
+
+```shell
+curl https://github-dynamic-changelog.comwork.io/v1/changelog/sha -X POST -d '{"sha":"0b318f6381cacfb9c79b332d7b256749f13da668", "org": "EbookFoundation", "repo":"free-programming-books", "format":"text/markdown"}' -v
 ```
 
 Note:
