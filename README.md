@@ -65,8 +65,21 @@ $ curl localhost:8080/v1/manifest
 
 ### Generate the changelog
 
+#### Changelog from protected branch
+
 ```shell
 curl localhost:8080/v1/changelog -X POST -d '{"ref":"master", "org": "EbookFoundation", "repo":"free-programming-books", "since":"2021-09-01T02:34:56-06:00", "format":"text/markdown"}' -v
+```
+
+Note:
+* `format` supports also `text/csv` and `application/json` (which is the default value)
+* `filter_author` is not required but if it's defined, it will filter all the pull requests opened by a login matching this value
+* `filter_message` is not required but if it's defined, it will filter the commit which have their messages matching this value
+
+#### Changelog from commit
+
+```shell
+curl localhost:8080/v1/changelog/sha -X POST -d '{"sha":"0b318f6381cacfb9c79b332d7b256749f13da668", "org": "EbookFoundation", "repo":"free-programming-books", "format":"text/markdown"}' -v
 ```
 
 Note:

@@ -15,11 +15,7 @@ class ChangelogApi(Resource):
         if is_not_ok(c):
             return c, 400
 
-        c = check_iso8601_request_param(body, 'since')
-        if is_not_ok(c):
-            return c, 400
-
-        c = check_mandatory_param(body, 'ref')
+        c = check_mandatory_param(body, 'sha')
         if is_not_ok(c):
             return c, 400
 
@@ -54,45 +50,4 @@ class ChangelogApi(Resource):
             "issues": []
         }
 
-        max = int(os.environ['PAGE_SIZE'])
-
-        filter_author = None
-        if not is_empty_request_field(body, 'filter_author'):
-            filter_author = body['filter_author']
-
-        filter_message = None
-        if not is_empty_request_field(body, 'filter_message'):
-            filter_message = body['filter_message']
-
-        mime = "application/json"
-        if not is_empty_request_field(body, 'format'):
-            mime = format
-
-        commit_concats = []
-        known_issues_ids = []
-        i=0
-        j=0
-        
-        for commit in commits_list:
-            short_commit = commit['sha'][0:8]
-
-            if commit['commit']['author']['name'] == filter_author or commit['commit']['committer']['name'] == filter_author:
-                continue
-
-            if filter_message is not None and filter_message.lower() in commit['commit']['message'].lower():
-                continue
-
-            extract_issues_from_text(commit['commit']['message'], body['org'], body['repo'], results['issues'], known_issues_ids)
-
-            if i >= max:
-                i=0
-                j+=1
-                commit_concats.append(short_commit)
-            elif len(commit_concats) <= j:
-                commit_concats.append(short_commit)
-                i+=1
-            else:
-                commit_concats[j] = "{}+{}".format(commit_concats[j], short_commit)
-                i+=1
-
-        return changelog_from_commits(results, commit_concats, body)
+        return changelog_from_commits(results, body['sha'], body)

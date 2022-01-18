@@ -2,8 +2,9 @@ import os
 import sys
 import re
 import requests
+from datetime import datetime
 
-from flask import request
+from flask import request, Response
 from github_api_specifications import *
 
 def is_not_empty (var):
@@ -123,3 +124,76 @@ def extract_issues_from_text(text, org, repo, issues, known_issues_ids):
                     "author": details['user']['login'],
                     "labels": list(map(lambda label: label['name'], details['labels']))
                 })
+
+def current_datetime_iso(body):
+    current_date = datetime.now()
+    body['since'] = current_date.isoformat()
+
+def changelog_from_commits(results, commit_concats, body):
+    filter_author = None
+    if not is_empty_request_field(body, 'filter_author'):
+        filter_author = body['filter_author']
+
+    if "since" not in body:
+        current_datetime_iso(body)
+
+    c = check_iso8601_request_param(body, 'since')
+    if is_not_ok(c):
+        current_datetime_iso(body)
+
+    for commits in commit_concats:
+        search_api_url = search_api_url_tpl.format(body['org'], body['repo'], commits)
+        log_msg("debug", "invoking search_api_url = {}".format(search_api_url))
+        search_response = requests.get(search_api_url, headers=github_common_header)
+        c = check_response_code(search_response, "search")
+        if is_not_ok(c):
+            return c, search_response.status_code
+
+        search_result = search_response.json()
+        
+        if "total_count" in search_result and search_result['total_count'] > 0:
+            for issue in search_result['items']:
+                id = issue['url'].rsplit('/',1)[1]
+                issue_response = requests.get(issue['url'], headers=github_common_header)
+                c = check_response_code(search_response, "issue")
+                if is_not_ok(c):
+                    results['prs'].append({
+                        'id': id,
+                        'url': issue['url']
+                    })
+                else:
+                    details = issue_response.json()
+                    author = details['user']['login']
+
+                    if author == filter_author:
+                        continue
+
+                    results['prs'].append({
+                        'id': id,
+                        'url': issue['html_url'],
+                        'title': details['title'],
+                        'author': author,
+                        'labels': list(map(lambda label: label['name'], details['labels']))
+                    })
+
+    if is_empty_request_field(body, 'format'):
+        return results
+
+    mime = determine_mime_type(body['format'])
+    if mime == "text/csv":
+        response = "title;url;author\n"
+        for result in results['issues']:
+            response += "{};{};{}\n".format(result['title'], result['url'], result['author'])
+        for result in results['prs']:
+            response += "{};{};{}\n".format(result['title'], result['url'], result['author'])
+        return Response(response, mimetype=mime)
+    elif mime == "text/markdown":
+        response = "# Changelog since {} for the repository {}/{}\n\n## Issues\n\n".format(body['since'], body['org'], body['repo'])
+        for result in results['issues']:
+            response += "* {} - {} - {}\n".format(result['title'], result['url'], result['author'])
+        response += "\n## Pull requests\n\n"
+        for result in results['prs']:
+            response += "* {} - {} - {}\n".format(result['title'], result['url'], result['author'])
+        return Response(response, mimetype=mime)
+    else:
+        return results
