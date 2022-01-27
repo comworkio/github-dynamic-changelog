@@ -90,7 +90,9 @@ def check_iso8601_request_param(body, name):
     }
 
 regexp_issues = r'#[^\#]*?([0-9]+)'
+regexp_external_issues = r'#([^\#\/]+)\/([^\#\/]+)\/issues\/([0-9]+)'
 pattern_regexp_issues = re.compile(regexp_issues)
+pattern_regexp_external_issues = re.compile(regexp_external_issues)
 
 regexp_pull_url = r'.*\/pull.*'
 match_pull_url = re.compile(regexp_pull_url).match
@@ -99,11 +101,25 @@ def extract_issues_from_text(text, org, repo, issues, known_issues_ids):
     if text.startswith("Merge"):
         return None
 
-    issues_id = pattern_regexp_issues.search(text)
+    issues_parameters = pattern_regexp_external_issues.search(text)
+    issues_id = None
+    if issues_parameters is not None:
+        issue_params_groups = issues_parameters.groups()
+        if len(issue_params_groups) >= 3:
+            org = issue_params_groups[0]
+            repo = issue_params_groups[1]
+            issues_id = [issue_params_groups[2]]
+
+    if issues_id is None:
+        issues_id_groups = pattern_regexp_issues.search(text)
+        if issues_id_groups is None:
+            return None
+        issues_id = issues_id_groups.groups()
+
     if issues_id is None:
         return None
 
-    for issue_id in issues_id.groups():
+    for issue_id in issues_id:
         log_msg("debug", "extract issue_id = {} in text = {}".format(issue_id, text))
         if issue_id not in known_issues_ids:
             known_issues_ids.append(issue_id)
