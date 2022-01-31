@@ -79,6 +79,7 @@ Note:
 * `format` supports also `text/csv` and `application/json` (which is the default value)
 * `filter_author` is not required but if it's defined, it will filter all the pull requests opened by a login matching this value
 * `filter_message` is not required but if it's defined, it will filter the commit which have their messages matching this value
+* `only_prs` is not required but if it's defined, no issues will be searched and the changelog will only contained the pull requests
 
 #### Changelog from commit
 
@@ -94,6 +95,7 @@ Note:
 * `format` supports also `text/csv` and `application/json` (which is the default value)
 * `filter_author` is not required but if it's defined, it will filter all the pull requests opened by a login matching this value
 * `filter_message` is not required but if it's defined, it will filter the commit which have their messages matching this value
+* `only_prs` is not required but if it's defined, no issues will be searched and the changelog will only contained the pull requests
 
 ### Update the issues associated to a given pull request
 

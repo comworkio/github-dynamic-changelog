@@ -68,6 +68,8 @@ class ChangelogApi(Resource):
         if not is_empty_request_field(body, 'format'):
             mime = format
 
+        only_prs = not is_empty_request_field(body, 'only_prs')
+
         commit_concats = []
         known_issues_ids = []
         i=0
@@ -82,7 +84,8 @@ class ChangelogApi(Resource):
             if filter_message is not None and filter_message.lower() in commit['commit']['message'].lower():
                 continue
 
-            extract_issues_from_text(commit['commit']['message'], body['org'], body['repo'], results['issues'], known_issues_ids)
+            if not only_prs:
+                extract_issues_from_text(commit['commit']['message'], body['org'], body['repo'], results['issues'], known_issues_ids)
 
             if i >= max:
                 i=0
@@ -95,4 +98,4 @@ class ChangelogApi(Resource):
                 commit_concats[j] = "{}+{}".format(commit_concats[j], short_commit)
                 i+=1
 
-        return changelog_from_commits(results, commit_concats, body)
+        return changelog_from_commits(results, commit_concats, body, only_prs)

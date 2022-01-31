@@ -145,7 +145,7 @@ def current_datetime_iso(body):
     current_date = datetime.now()
     body['since'] = current_date.isoformat()
 
-def changelog_from_commits(results, commit_concats, body):
+def changelog_from_commits(results, commit_concats, body, only_prs):
     filter_author = None
     if not is_empty_request_field(body, 'filter_author'):
         filter_author = body['filter_author']
@@ -198,18 +198,24 @@ def changelog_from_commits(results, commit_concats, body):
     mime = determine_mime_type(body['format'])
     if mime == "text/csv":
         response = "title;url;author\n"
-        for result in results['issues']:
-            response += "{};{};{}\n".format(result['title'], result['url'], result['author'])
+        if not only_prs:
+            for result in results['issues']:
+                response += "{};{};{}\n".format(result['title'], result['url'], result['author'])
         for result in results['prs']:
             response += "{};{};{}\n".format(result['title'], result['url'], result['author'])
         return Response(response, mimetype=mime)
     elif mime == "text/markdown":
-        response = "# Changelog since {} for the repository {}/{}\n\n## Issues\n\n".format(body['since'], body['org'], body['repo'])
-        for result in results['issues']:
-            response += "* {} - {} - {}\n".format(result['title'], result['url'], result['author'])
+        if only_prs:
+            response = "# Changelog since {} for the repository {}/{}\n".format(body['since'], body['org'], body['repo'])
+        else:
+            response = "# Changelog since {} for the repository {}/{}\n\n## Issues\n\n".format(body['since'], body['org'], body['repo'])
+            for result in results['issues']:
+                response += "* {} - {} - {}\n".format(result['title'], result['url'], result['author'])
         response += "\n## Pull requests\n\n"
         for result in results['prs']:
             response += "* {} - {} - {}\n".format(result['title'], result['url'], result['author'])
         return Response(response, mimetype=mime)
     else:
+        if only_prs:
+            del results['issues']
         return results

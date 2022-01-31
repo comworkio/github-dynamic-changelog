@@ -25,4 +25,4 @@ class ChangelogFromShaApi(Resource):
             "issues": []
         }
 
-        return changelog_from_commits(results, [body['sha']], body)
+        return changelog_from_commits(results, [body['sha']], body, not is_empty_request_field(body, 'only_prs'))
