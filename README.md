@@ -15,6 +15,7 @@ This api is available as a ready to use docker image.
 * Github mirror: https://github.com/idrissneumann/github-dynamic-changelog.git
 * Gitlab mirror: https://gitlab.com/ineumann/github-dynamic-changelog.git
 * Bitbucket mirror: https://bitbucket.org/idrissneumann/github-dynamic-changelog.git
+* Froggit mirror: https://lab.frogg.it/ineumann/github-dynamic-changelog.git
 
 ## Image on the dockerhub
 
