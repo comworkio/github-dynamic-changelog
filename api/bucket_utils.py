@@ -1,10 +1,9 @@
 import json
 
 from os import remove
+from os import getenv
 from io import open
 from minio import Minio
-from minio.error import S3Error
-
 
 def upload_file(write_bucket, ext, content, org, repo):
     if write_bucket:
@@ -22,15 +21,14 @@ def upload_file(write_bucket, ext, content, org, repo):
         remove(path_file)
     
 def upload_bucket(file_path, target_name):
-    endpoint = os.environ['BUCKET_ENDPOINT']
-    access_key = os.environ['BUCKET_ACCESS_KEY']
-    secret_key = os.environ['BUCKET_SECRET_KEY']
-    bucket_name = os.environ['BUCKET_NAME']
+    endpoint = getenv('BUCKET_ENDPOINT')
+    access_key = getenv('BUCKET_ACCESS_KEY')
+    secret_key = getenv('BUCKET_SECRET_KEY')
+    bucket_name = getenv('BUCKET_NAME')
 
-    client = Minio(endpoint, access_key=access_key, secret_key=secret_key)
-
-    found = client.bucket_exists(bucket_name)
-    if not found:
-        client.make_bucket(bucket_name)
-
-    client.fput_object(bucket_name, target_name, file_path)
+    if endpoint and access_key and secret_key and bucket_name:
+        client = Minio(endpoint, access_key=access_key, secret_key=secret_key)
+        found = client.bucket_exists(bucket_name)
+        if not found:
+            client.make_bucket(bucket_name)
+        client.fput_object(bucket_name, target_name, file_path)

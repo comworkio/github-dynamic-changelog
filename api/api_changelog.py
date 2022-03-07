@@ -54,7 +54,7 @@ class ChangelogApi(Resource):
             "issues": []
         }
 
-        max = int(os.environ['PAGE_SIZE'])
+        max = int(getenv('PAGE_SIZE'])
 
         filter_author = None
         if not is_empty_request_field(body, 'filter_author'):
