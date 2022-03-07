@@ -1,7 +1,7 @@
 # Github Dynamic Changelog
 
 A restful api which gives you the github changelog of a protected branch in real time.
-Usefull to see what is deployed on your environments in a web dashboard.
+Usefull to see what is deployed on your environments in a web dashboard. The changelog can also be uploaded in an object storage bucket (i.e: Amazon S3 or Google Object Storage).
 
 This api is available as a ready to use docker image.
 

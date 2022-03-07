@@ -6,12 +6,13 @@ from os import getenv
 from io import open
 from minio import Minio
 
+from datetime import datetime
 from logger_utils import *
 
 def upload_file(write_bucket, ext, content, org, repo):
     log_msg("debug", "upload_file, write_bucket = {}".format(write_bucket))
     if write_bucket:
-        name_file = "{}_{}.{}".format(org, repo, ext)
+        name_file = "{}_{}-{}.{}".format(org, repo, datetime.now().isoformat(), ext)
         path_file = "/tmp/{}".format(name_file)
 
         log_msg("debug", "upload file to bucket: name_file = {}, path_file = {}".format(name_file, path_file))
