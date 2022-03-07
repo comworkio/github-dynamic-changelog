@@ -1,6 +1,7 @@
 from flask import Response
 from flask_restful import Resource
 
+from http_utils import *
 from changelog_utils import *
 
 class ChangelogFromShaApi(Resource):

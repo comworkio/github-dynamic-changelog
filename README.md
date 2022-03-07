@@ -82,6 +82,7 @@ Note:
 * `filter_author` is not required but if it's defined, it will filter all the pull requests opened by a login matching this value
 * `filter_message` is not required but if it's defined, it will filter the commit which have their messages matching this value
 * `only_prs` is not required but if it's defined, no issues will be searched and the changelog will only contained the pull requests
+* `write_bucket` is not required but if it's defined with `true`, the changelog will be upload in an object storage bucket (you'll have to define the following environment variables: `BUCKET_ENDPOINT`, `BUCKET_NAME`, `BUCKET_REGION`, `BUCKET_ACCESS_KEY`, `BUCKET_SECRET_KEY`)
 
 #### Changelog from commit
 
@@ -98,6 +99,7 @@ Note:
 * `filter_author` is not required but if it's defined, it will filter all the pull requests opened by a login matching this value
 * `filter_message` is not required but if it's defined, it will filter the commit which have their messages matching this value
 * `only_prs` is not required but if it's defined, no issues will be searched and the changelog will only contained the pull requests
+* `write_bucket` is not required but if it's defined with `true`, the changelog will be upload in an object storage bucket (you'll have to define the following environment variables: `BUCKET_ENDPOINT`, `BUCKET_NAME`, `BUCKET_REGION`, `BUCKET_ACCESS_KEY`, `BUCKET_SECRET_KEY`)
 
 ### Update the issues associated to a given pull request
 

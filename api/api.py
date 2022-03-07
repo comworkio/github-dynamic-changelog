@@ -1,7 +1,6 @@
 from flask import Flask, request
 from flask_restful import Api
 
-from changelog_utils import *
 from api_root import RootEndPoint
 from api_manifest import ManifestEndPoint
 from api_changelog import ChangelogApi
