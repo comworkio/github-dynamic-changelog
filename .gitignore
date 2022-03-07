@@ -71,9 +71,4 @@ hs_err_pid*.log
 
 *.pem
 
-*.deb
 .env
-*.retry
-
-.vscode
-
