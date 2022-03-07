@@ -1,3 +1,5 @@
+import os
+
 from flask_restful import Resource
 
 from http_utils import *
@@ -54,7 +56,7 @@ class ChangelogApi(Resource):
             "issues": []
         }
 
-        max = int(getenv('PAGE_SIZE'])
+        max = int(os.environ['PAGE_SIZE'])
 
         filter_author = None
         if not is_empty_request_field(body, 'filter_author'):
