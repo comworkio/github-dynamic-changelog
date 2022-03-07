@@ -6,6 +6,7 @@ from datetime import datetime
 
 from flask import request, Response
 from github_api_specifications import *
+from bucket_utils import *
 
 def is_not_empty (var):
     if (isinstance(var, bool)):
@@ -150,6 +151,10 @@ def changelog_from_commits(results, commit_concats, body, only_prs):
     if not is_empty_request_field(body, 'filter_author'):
         filter_author = body['filter_author']
 
+    write_bucket = False
+    if not is_empty_request_field(body, 'write_bucket'):
+        write_bucket = True
+
     if "since" not in body:
         current_datetime_iso(body)
 
@@ -193,6 +198,7 @@ def changelog_from_commits(results, commit_concats, body, only_prs):
                     })
 
     if is_empty_request_field(body, 'format'):
+        upload_file(write_bucket, "json", results, body['org'], body['repo'])
         return results
 
     mime = determine_mime_type(body['format'])
@@ -203,6 +209,7 @@ def changelog_from_commits(results, commit_concats, body, only_prs):
                 response += "{};{};{}\n".format(result['title'], result['url'], result['author'])
         for result in results['prs']:
             response += "{};{};{}\n".format(result['title'], result['url'], result['author'])
+        upload_file(write_bucket, "csv", response, body['org'], body['repo'])
         return Response(response, mimetype=mime)
     elif mime == "text/markdown":
         if only_prs:
@@ -214,8 +221,10 @@ def changelog_from_commits(results, commit_concats, body, only_prs):
         response += "\n## Pull requests\n\n"
         for result in results['prs']:
             response += "* {} - {} - {}\n".format(result['title'], result['url'], result['author'])
+        upload_file(write_bucket, "md", response, body['org'], body['repo'])
         return Response(response, mimetype=mime)
     else:
         if only_prs:
             del results['issues']
+        upload_file(write_bucket, "json", results, body['org'], body['repo'])
         return results
