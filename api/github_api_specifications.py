@@ -11,6 +11,6 @@ issue_api_url_tpl = github_api_url + "/repos/{}/{}/issues/{}"
 issue_url_tpl = "https://github.com/{}/{}/issues/{}"
 
 github_common_header = {
-    "Authorization": "Bearer {}".format(getenv('GITHUB_ACCESS_TOKEN']),
+    "Authorization": "Bearer {}".format(os.environ['GITHUB_ACCESS_TOKEN']),
     "Accept": "application/vnd.github.{}+json".format(github_api_version)
 }
