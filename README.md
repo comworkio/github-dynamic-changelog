@@ -55,7 +55,18 @@ First create your `.env` file from the `.env.example`:
 cp .env.example .env
 ```
 
-Then replace the values (like the `GITHUB_ACCESS_TOKEN` with one of your own). Then:
+Then replace the values (like the `GITHUB_ACCESS_TOKEN` with one of your own). 
+
+Also replace the following variable for your bucket or remove them if you don't want to use a bucket for the storage of your changelog:
+
+```
+BUCKET_REGION=fr-par
+BUCKET_NAME=changeit
+BUCKET_ACCESS_KEY=changeit
+BUCKET_SECRET_KEY=changeit
+```
+
+Then:
 
 ```shell
 $ docker-compose up
