@@ -67,6 +67,23 @@ $ curl localhost:8080/v1/manifest
 
 ### Generate the changelog
 
+#### Syntax of commit
+
+In order to be able to provide the list of the issues by this API, your commits must follow this rule: put the issue reference in your commit's comment or body like that:
+
+* `#12345`: if your issue `12345` is on the same repository as the updated code
+* `#{orga}/{repo}/issues/12345`: if your issue isn't on the same repository as the updated code (juste copy/past the path of the issue provided by the github's issue url and write it behind a `#`)
+
+If you're using something like [conventional commits](https://www.conventionalcommits.org), you can add the reference of the issue in the body of the commit:
+
+```
+chore(domain): add something like XXXXX in order to YYYYY
+
+Issue #myorga/myrepo/issues/12345
+```
+
+This way, the message of your commits will directly be published on the issue's comments and this API will provide a more complete changelog containing the related issues (and not only the pull requests).
+
 #### Changelog from protected branch
 
 ```shell
