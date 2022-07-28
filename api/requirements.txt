@@ -1,3 +1,4 @@
+werkzeug==2.0.0
 flask-restful
 requests
 minio
